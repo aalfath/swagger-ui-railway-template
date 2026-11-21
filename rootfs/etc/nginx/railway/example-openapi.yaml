@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: Spec storage on this Swagger UI
+  version: "1.0.0"
+  description: |
+    This example ships with the Railway template and lives on the Railway volume
+    at `/data/specs/example-openapi.yaml`. It documents the small file API this
+    deployment adds, so you can try it right here.
+
+    * Every `.json`, `.yaml` or `.yml` file in `/specs/` shows up in the
+      **Select a definition** menu at the top of the page (reload after an upload).
+    * Reading is public. Uploading and deleting need HTTP basic auth: user
+      `admin` (the `SPECS_USER` variable) and the `SPECS_PASSWORD` variable from
+      the service's **Variables** tab on Railway.
+    * Delete this file once you have uploaded your own; it isn't recreated.
+
+    From a terminal:
+
+    ```
+    curl -u admin:SPECS_PASSWORD -T openapi.yaml https://YOUR-DOMAIN/specs/openapi.yaml
+    ```
+servers:
+  - url: /
+paths:
+  /specs/:
+    get:
+      summary: List the stored spec files
+      responses:
+        "200":
+          description: JSON list of files (nginx autoindex format)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name: { type: string, example: example-openapi.yaml }
+                    type: { type: string, example: file }
+                    mtime: { type: string }
+                    size: { type: integer }
+  /specs/{file}:
+    parameters:
+      - name: file
+        in: path
+        required: true
+        description: File name ending in .json, .yaml or .yml
+        schema: { type: string, example: my-api.yaml }
+    get:
+      summary: Download a spec file
+      responses:
+        "200": { description: The file }
+        "404": { description: No such file }
+    put:
+      summary: Upload or replace a spec file
+      security:
+        - specsAuth: []
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema: { type: string }
+          application/json:
+            schema: { type: object }
+      responses:
+        "201": { description: Created }
+        "204": { description: Replaced }
+        "401": { description: Wrong or missing password }
+    delete:
+      summary: Delete a spec file
+      security:
+        - specsAuth: []
+      responses:
+        "204": { description: Deleted }
+        "401": { description: Wrong or missing password }
+        "404": { description: No such file }
+  /healthz:
+    get:
+      summary: Health check used by Railway
+      responses:
+        "200": { description: ok }
+components:
+  securitySchemes:
+    specsAuth:
+      type: http
+      scheme: basic
