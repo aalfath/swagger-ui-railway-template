@@ -5,8 +5,10 @@ FROM swaggerapi/swagger-ui:v5.35.1@sha256:cd314c0a167841dc1c9869ff2df6f949e2e7fa
 
 # Railway wrapper: /specs/ on the /data volume (public read, password-protected
 # upload), a /healthz path, and a spec picker that lists the uploaded files.
-COPY --chmod=0644 rootfs/etc/nginx/railway/ /etc/nginx/railway/
-COPY --chmod=0755 rootfs/docker-entrypoint.d/45-railway.sh /docker-entrypoint.d/45-railway.sh
+COPY rootfs/etc/nginx/railway/ /etc/nginx/railway/
+COPY rootfs/docker-entrypoint.d/45-railway.sh /docker-entrypoint.d/45-railway.sh
+RUN chmod 0755 /etc/nginx/railway /docker-entrypoint.d/45-railway.sh && \
+    chmod 0644 /etc/nginx/railway/*
 
 ENV PORT=8080
 EXPOSE 8080

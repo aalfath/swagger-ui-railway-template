@@ -62,6 +62,10 @@ if ! grep -q 'railway/specs.conf' "$CONF"; then
   fi
 fi
 
+# nginx's default starts one worker per host CPU, which wastes memory on large
+# Railway hosts. Two workers are plenty for a docs site.
+sed -i "s|^worker_processes .*;|worker_processes ${NGINX_WORKER_PROCESSES:-2};|" /etc/nginx/nginx.conf
+
 # 4. Swagger UI: unless you point it at your own spec (URL, URLS, SWAGGER_JSON_URL,
 #    CONFIG_URL, SPEC or a mounted SWAGGER_JSON file), list the files in /specs/.
 own_spec=""
